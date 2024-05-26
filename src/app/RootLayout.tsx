@@ -1,10 +1,4 @@
-"use client";
-
-import { Inter } from "next/font/google";
-import "./globals.css";
-import Sidebar from "./_components/Sidebar";
-
-const inter = Inter({ subsets: ["latin"] });
+import { inter } from "./layout";
 
 export default function RootLayout({
   children,
@@ -16,7 +10,6 @@ export default function RootLayout({
       <body className={inter.className}>
         <main className="w-full flex min-h-screen bg-n75">
           <Sidebar />
-          {children}
         </main>
       </body>
     </html>

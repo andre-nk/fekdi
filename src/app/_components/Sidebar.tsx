@@ -19,8 +19,8 @@ export default function Sidebar() {
           className="w-full flex justify-between items-center hover:bg-white p-6 rounded-lg transition-all duration-300"
         >
           <div className="flex space-x-4 items-center">
-            <Avatar name="Jeroen Ransijn" size={32} />
-            <p className="font-medium text-sm">Jeroen</p>
+            <Avatar name="Acme Company" size={32} />
+            <p className="font-medium text-sm">Acme Company</p>
           </div>
           <div className="p-1 bg-white border rounded-md border-n300">
             <CaretDownIcon size={12} color="black" />
@@ -35,22 +35,25 @@ export default function Sidebar() {
           <SidebarTile
             icon={<FlowBranchIcon size={16} color="#8F95B2" />}
             title="SOP"
-            href="/"
+            href="/sop"
           />
           <SidebarTile
             icon={<PeopleIcon size={16} color="#8F95B2" />}
             title="Member"
-            href="/"
+            href="/member"
+            isDisabled
           />
           <SidebarTile
             icon={<SettingsIcon size={16} color="#8F95B2" />}
             title="Settings"
-            href="/"
+            href="/settings"
+            isDisabled
           />
           <SidebarTile
             icon={<CreditCardIcon size={16} color="#8F95B2" />}
             title="Billing"
-            href="/"
+            href="/billing"
+            isDisabled
           />
         </div>
       </div>
@@ -59,10 +62,12 @@ export default function Sidebar() {
         className="w-full flex justify-between items-center hover:bg-white p-6 rounded-lg transition-all duration-300"
       >
         <div className="flex space-x-4 items-center">
-          <Avatar name="Jeroen Ransijn" size={32} />
+          <Avatar name="John Doe" size={32} />
           <div className="flex flex-col items-start">
-            <p className="font-medium text-xs">Jeroen</p>
-            <p className="font-light text-n600 text-[10px]">jeroen@fekdi.com</p>
+            <p className="font-medium text-xs">John Doe</p>
+            <p className="font-light text-n600 text-[10px]">
+              johndoe@fekdi.com
+            </p>
           </div>
         </div>
         <div className="p-1 bg-white border rounded-md border-n300">
