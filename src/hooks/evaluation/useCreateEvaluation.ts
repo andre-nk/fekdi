@@ -1,6 +1,13 @@
 import { db } from "@/firebase/config";
 import { Evaluation } from "@/models/evaluation";
-import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { useState } from "react";
 
 export const useCreateEvaluation = (sopID: string) => {
@@ -8,7 +15,7 @@ export const useCreateEvaluation = (sopID: string) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createEvaluation = async () => {
+  const createEvaluation = async (evaluationID: string) => {
     try {
       setSuccess(false);
       setError(null);
@@ -19,7 +26,10 @@ export const useCreateEvaluation = (sopID: string) => {
         updatedAt: new Date(),
       };
 
-      await addDoc(collection(db, `sop/${sopID}/evaluations`), evaluation);
+      await setDoc(
+        doc(db, `sop/${sopID}/evaluations/${evaluationID}`),
+        evaluation
+      );
       await updateDoc(doc(db, `sop/${sopID}`), {
         updatedAt: new Date(),
       });

@@ -8,22 +8,37 @@ export const useUpdateEvaluation = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const updateEvaluation = async (
-    sopID: string,
-    evaluationID: string,
-    logID?: string,
-    modelID?: string
-  ) => {
+  interface UpdateEvaluationInput {
+    sopID: string;
+    evaluationID: string;
+    logID?: string;
+    modelID?: string;
+  }
+
+  const updateEvaluation = async ({
+    sopID,
+    evaluationID,
+    logID,
+    modelID,
+  }: UpdateEvaluationInput) => {
     try {
       setSuccess(false);
       setError(null);
       setLoading(true);
 
-      await updateDoc(doc(db, `sop/${sopID}/evaluations/${evaluationID}`), {
-        updatedAt: new Date(),
-        logID,
-        modelID,
-      });
+      if (logID) {
+        await updateDoc(doc(db, `sop/${sopID}/evaluations/${evaluationID}`), {
+          updatedAt: new Date(),
+          logID: logID,
+        });
+      }
+
+      if (modelID) {
+        await updateDoc(doc(db, `sop/${sopID}/evaluations/${evaluationID}`), {
+          updatedAt: new Date(),
+          modelID: modelID,
+        });
+      }
 
       await updateDoc(doc(db, `sop/${sopID}`), {
         updatedAt: new Date(),

@@ -1,33 +1,44 @@
-"use client";
-
-import { Pane, SelectMenu, FilmIcon, Button, TimeIcon } from "evergreen-ui";
+import { Evaluation } from "@/models/evaluation";
+import { Pane, SelectMenu, Button, TimeIcon } from "evergreen-ui";
 import React from "react";
 
-export default function VersionDropdown() {
+export default function VersionDropdown({
+  versions,
+  activeEvaluation,
+  setActiveEvaluation,
+}: {
+  versions: string[];
+  activeEvaluation: Evaluation | null;
+  setActiveEvaluation: (id: string) => void;
+}) {
   const [selected, setSelected] = React.useState("");
 
   return (
     <Pane>
       <SelectMenu
-        title="Choose a version"
-        options={[
-          "Q1 2024",
-          "Q4 2023",
-          "Q3 2023",
-          "Q2 2023",
-          "Q1 2023",
-          "Q4 2022",
-          "Q3 2022",
-          "Q2 2022",
-          "Q1 2022",
-        ].map((label) => ({ label, value: label }))}
+        title={
+          activeEvaluation
+            ? activeEvaluation.id?.substring(0, 4)
+            : "Select version"
+        }
+        options={versions.map((version) => ({
+          label: version,
+          value: version,
+        }))}
         selected={selected}
         filterPlaceholder="Choose a version"
         filterIcon={TimeIcon}
-        onSelect={(item) => setSelected(item.value as string)}
+        onSelect={(item) => {
+          setSelected(item.value as string);
+          setActiveEvaluation(item.value as string);
+        }}
       >
         <Button>
-          {selected ? `Version: ${selected}` : "Select version..."}
+          {selected
+            ? `Version: ${selected}`
+            : activeEvaluation
+            ? `New version: ${activeEvaluation.id?.substring(0, 4)}`
+            : "Choose a version"}
         </Button>
       </SelectMenu>
     </Pane>

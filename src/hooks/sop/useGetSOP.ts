@@ -1,6 +1,6 @@
 import { db } from "@/firebase/config";
 import { SOP } from "@/models/sop";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 export const useGetSOP = () => {
@@ -9,16 +9,14 @@ export const useGetSOP = () => {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    const fetchSOP = async () => {
+    const unsub = onSnapshot(collection(db, "sop"), async (snapshot) => {
       try {
         setLoading(true);
-        const querySnapshot = await getDocs(collection(db, "sop"));
-
-        if (querySnapshot.empty) {
+        if (snapshot.empty) {
           throw new Error("No SOP found!");
         } else {
           const sopList: SOP[] = [];
-          querySnapshot.forEach((doc) => {
+          snapshot.forEach((doc) => {
             const sopData = doc.data() as SOP;
             sopData.id = doc.id;
 
@@ -32,9 +30,11 @@ export const useGetSOP = () => {
         setError(error.message);
         setLoading(false);
       }
-    };
+    });
 
-    fetchSOP();
+    return () => {
+      unsub();
+    };
   }, []);
 
   return { sop, loading, error };
