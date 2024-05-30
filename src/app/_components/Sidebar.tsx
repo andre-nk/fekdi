@@ -12,7 +12,7 @@ import SidebarTile from "./SidebarTile";
 
 export default function Sidebar() {
   return (
-    <div className="lg:w-1/4 xl:w-[22.5%] bg-n100 flex flex-col justify-between min-h-screen border-n400 border-r">
+    <div className="lg:w-1/4 xl:w-[20vw] bg-n100 flex flex-col justify-between min-h-screen border-n400 border-r">
       <div className="flex flex-col">
         <button
           onClick={() => {}}

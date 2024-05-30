@@ -5,14 +5,21 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
+  PlusIcon,
+  SavedIcon,
   Spinner,
   toaster,
 } from "evergreen-ui";
-import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
+import {
+  PanelGroup,
+  Panel,
+  PanelResizeHandle,
+  getPanelGroupElement,
+} from "react-resizable-panels";
 import Header from "@/app/_components/Header";
 import { useGetSOPByID } from "@/hooks/sop/useGetSOPByID";
 import SOPNodes from "../_components/SOPNodes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FirstStepForm from "../_components/FirstStepForm";
 import SecondStepForm from "../_components/SecondStepForm";
 import ThirdStepForm from "../_components/ThirdStepForm";
@@ -23,6 +30,8 @@ import { uuid } from "uuidv4";
 import { useAddLog } from "@/hooks/log/useAddLog";
 import { useCreateEvaluation } from "@/hooks/evaluation/useCreateEvaluation";
 import { useAddModel } from "@/hooks/model/useAddModel";
+import VersionDropdown from "@/app/_components/VersionDropdown";
+import { usePDF } from "react-to-pdf";
 
 export default function SOPDetailPage({ params }: { params: { id: string } }) {
   const [step, setStep] = useState(1);
@@ -61,7 +70,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
       id,
       logID: "",
       modelID: "",
-      evaluation: 100,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -91,7 +99,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
       if (sop?.evaluations && sop.evaluations.length === 0) {
         setStep(1);
       } else if (evaluation) {
-        if (evaluation.evaluation !== undefined) {
+        if (evaluation.result !== undefined) {
           //console.log("Test 5");
           setStep(5);
         } else if (evaluation.modelID !== undefined) {
@@ -109,7 +117,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
         // console.log(sop.evaluations[0].logID);
         // console.log(sop.evaluations[0].modelID);
         // console.log(sop.evaluations[0].evaluation);
-        if (sop.evaluations[0].evaluation !== undefined) {
+        if (sop.evaluations[0].result !== undefined) {
           //console.log("Test 5");
           setStep(5);
         } else if (sop.evaluations[0].modelID !== undefined) {
@@ -170,12 +178,15 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
     }
   }, [modelSuccess, evaluation?.id, step, evaluation]);
 
+  //#4: Export to PDF
+  const { toPDF, targetRef } = usePDF({ filename: "page.pdf" });
+
   return loading && sop === null ? (
     <div className="w-full min-h-screen flex flex-col justify-center items-center">
       <Spinner />
     </div>
   ) : (
-    <div className="w-full flex flex-col">
+    <div className="w-[80vw] flex flex-col">
       <Header
         name={sop?.name!}
         versions={sop?.evaluations!}
@@ -183,7 +194,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
         setActiveEvaluation={setActiveEvaluation}
         newEvaluation={newEvaluation}
       />
-      <PanelGroup autoSaveId={"tab"} direction="vertical">
+      <PanelGroup autoSaveId={"tab"} id={"tab"} direction="vertical">
         <Panel>
           <SOPNodes />
         </Panel>
@@ -195,11 +206,11 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
         </PanelResizeHandle>
         <Panel
           defaultSize={50}
-          minSize={50}
-          className="bg-white w-full flex flex-col justify-between space-y-4 py-6"
+          minSize={step === 5 ? 98 : 50}
+          className="bg-white w-full"
         >
-          {evaluation && (
-            <div>
+          {evaluation ? (
+            <div className="h-full flex flex-col justify-between space-y-4 pt-6">
               {step == 1 ? (
                 <FirstStepForm uploadedLog={log} setLog={setLog} />
               ) : step == 2 ? (
@@ -212,7 +223,10 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
               ) : step == 4 ? (
                 <FourthStepForm />
               ) : (
-                <FifthStepForm />
+                <FifthStepForm
+                  evaluationID={evaluation.id!}
+                  targetRef={targetRef}
+                />
               )}
               <div className="w-full flex px-6 py-6 items-center justify-between">
                 <Button
@@ -231,10 +245,17 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                 <Button
                   size="medium"
                   appearance="primary"
-                  backgroundColor="#0021A5"
-                  disabled={step == 5 || (step == 1 && (!log || logLoading))}
-                  className={step == 5 ? "opacity-0" : "opacity-100"}
-                  iconAfter={<ChevronRightIcon size={12} color="white" />}
+                  backgroundColor={step == 5 ? "#FF5003" : "#0021A5"}
+                  disabled={
+                    step == 1 && !(log || logLoading || evaluation.logID)
+                  }
+                  iconAfter={
+                    step == 5 ? (
+                      <SavedIcon size={12} color="white" />
+                    ) : (
+                      <ChevronRightIcon size={12} color="white" />
+                    )
+                  }
                   onClick={async () => {
                     if (step == 1) {
                       console.log(evaluation.logID === undefined && log);
@@ -251,10 +272,33 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                       } else {
                         setStep(step + 1);
                       }
+                    } else if (step == 4) {
+                      setStep(step + 1);
+                    } else if (step == 5) {
+                      if (targetRef.current !== null) {
+                        toPDF();
+                      }
                     }
                   }}
                 >
-                  <p className="text-white font-medium">Next</p>
+                  <p className="text-white font-medium">
+                    {step == 5 ? "Export to PDF" : "Next"}
+                  </p>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full flex flex-col justify-center items-center gap-4">
+              <h2>Choose a version or create a new one to continue...</h2>
+              <div className="flex justify-end items-center space-x-5">
+                <Button
+                  size="medium"
+                  appearance="primary"
+                  backgroundColor="#0021A5"
+                  onClick={newEvaluation}
+                  iconBefore={<PlusIcon size={12} color="white" />}
+                >
+                  <p className="text-white font-medium">Create new</p>
                 </Button>
               </div>
             </div>

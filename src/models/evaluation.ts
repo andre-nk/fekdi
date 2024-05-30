@@ -1,8 +1,10 @@
+import { Result } from "./result";
+
 export type Evaluation = {
   id?: string;
   logID?: string;
   modelID?: string;
-  evaluation?: number;
+  result?: Result;
   createdAt: Date;
   updatedAt: Date;
 };
