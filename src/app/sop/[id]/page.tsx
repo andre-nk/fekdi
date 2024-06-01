@@ -32,6 +32,8 @@ import { useCreateEvaluation } from "@/hooks/evaluation/useCreateEvaluation";
 import { useAddModel } from "@/hooks/model/useAddModel";
 import VersionDropdown from "@/app/_components/VersionDropdown";
 import { usePDF } from "react-to-pdf";
+import { useGetLog } from "@/hooks/log/useGetLog";
+import { useGetModel } from "@/hooks/model/useGetModel";
 
 export default function SOPDetailPage({ params }: { params: { id: string } }) {
   const [step, setStep] = useState(1);
@@ -108,7 +110,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
         } else if (evaluation.modelID === undefined) {
           setStep(3);
         } else if (evaluation.logID !== undefined) {
-          //console.log("Test 1");
           setStep(4);
         } else if (evaluation.logID === undefined) {
           setStep(1);
@@ -178,6 +179,19 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
     }
   }, [modelSuccess, evaluation?.id, step, evaluation]);
 
+  //#5: Handle Fetch Log
+  const {
+    log: fetchedLog,
+    loading: getLogLoading,
+    error: getLogError,
+  } = useGetLog(params.id as string, evaluation?.logID);
+
+  const {
+    model: fetchedModel,
+    loading: getModelLoading,
+    error: getModelError,
+  } = useGetModel(params.id as string, evaluation?.logID);
+
   //#4: Export to PDF
   const { toPDF, targetRef } = usePDF({ filename: "page.pdf" });
 
@@ -212,13 +226,18 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
           {evaluation ? (
             <div className="h-full flex flex-col justify-between space-y-4 pt-6">
               {step == 1 ? (
-                <FirstStepForm uploadedLog={log} setLog={setLog} />
+                <FirstStepForm
+                  cloudLog={fetchedLog?.link!}
+                  uploadedLog={log}
+                  setLog={setLog}
+                />
               ) : step == 2 ? (
                 <SecondStepForm />
               ) : step == 3 ? (
                 <ThirdStepForm
                   uploadedPetrinet={petrinet}
                   setPetrinet={setPetrinet}
+                  cloudPetrinet={fetchedModel?.link!}
                 />
               ) : step == 4 ? (
                 <FourthStepForm />
@@ -237,7 +256,11 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                   className={step == 1 ? "opacity-0" : "opacity-100"}
                   iconBefore={<ChevronLeftIcon size={12} color="white" />}
                   onClick={() => {
-                    setStep(step - 1);
+                    if (step == 3) {
+                      setStep(1);
+                    } else {
+                      setStep(step - 1);
+                    }
                   }}
                 >
                   <p className="text-white font-medium">Back</p>
@@ -259,10 +282,14 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                   onClick={async () => {
                     if (step == 1) {
                       console.log(evaluation.logID === undefined && log);
-                      if (evaluation.logID === undefined && log) {
+                      if (
+                        evaluation.logID === undefined &&
+                        log &&
+                        log instanceof File
+                      ) {
                         await addLog(log!, sop?.id!, evaluation.id!);
                       } else {
-                        setStep(step + 1);
+                        setStep(3);
                       }
                     } else if (step == 2) {
                       setStep(step + 1);
