@@ -173,13 +173,18 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
   } = useGetModel(params.id as string, evaluation?.modelID);
 
   const {
-    success,
+    success: resultSuccess,
     loading: resultLoading,
     error: resultError,
     createResult,
-  } = useCreateResult(fetchedLog?.link!, fetchedModel?.link!);
+  } = useCreateResult(
+    params.id as string,
+    evaluation?.id!,
+    fetchedLog?.link!,
+    fetchedModel?.link!
+  );
 
-  //#4: Export to PDF
+  //#4: Export to PDFn
   const { toPDF, targetRef } = usePDF({ filename: "page.pdf" });
 
   return loading && sop === null ? (
@@ -232,6 +237,13 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                 <FifthStepForm
                   evaluationID={evaluation.id!}
                   targetRef={targetRef}
+                  results={
+                    resultSuccess
+                      ? resultSuccess
+                      : evaluation.result
+                      ? evaluation.result
+                      : []
+                  }
                 />
               )}
               <div className="w-full flex px-6 py-6 items-center justify-between">
@@ -257,7 +269,8 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                   appearance="primary"
                   backgroundColor={step == 5 ? "#FF5003" : "#0021A5"}
                   disabled={
-                    step == 1 && !(log || logLoading || evaluation.logID)
+                    (step == 1 && !(log || logLoading || evaluation.logID)) ||
+                    (step == 4 && resultLoading)
                   }
                   iconAfter={
                     step == 5 ? (
@@ -286,8 +299,14 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                         setStep(step + 1);
                       }
                     } else if (step == 4) {
-                      await createResult();
-                      setStep(step + 1);
+                      await createResult().then(() => {
+                        if (resultSuccess) {
+                          toaster.success("Result created successfully", {});
+                          setStep(step + 1);
+                        } else if (resultError) {
+                          toaster.danger(`Error ${resultError}`, {});
+                        }
+                      });
                     } else if (step == 5) {
                       if (targetRef.current !== null) {
                         toPDF();
@@ -296,7 +315,13 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                   }}
                 >
                   <p className="text-white font-medium">
-                    {step == 5 ? "Export to PDF" : step == 4 ? "Check" : "Next"}
+                    {step == 5
+                      ? "Export to PDF"
+                      : step == 4 && !resultLoading
+                      ? "Check"
+                      : step == 4 && resultLoading
+                      ? "Loading..."
+                      : "Next"}
                   </p>
                 </Button>
               </div>

@@ -1,13 +1,19 @@
-import { storage } from "@/firebase/config";
-import { getDownloadURL, ref } from "@firebase/storage";
+import { Alignment, Result } from "@/models/result";
 import { useState } from "react";
+import { useUpdateEvaluation } from "../evaluation/useUpdateEvaluation";
 
-export const useCreateResult = (logUrl: string, modelUrl: string) => {
+export const useCreateResult = (
+  sopID: string,
+  evaluationID: string,
+  logUrl: string,
+  modelUrl: string
+) => {
   const [log, setLog] = useState<File | null>(null);
   const [model, setModel] = useState<File | null>(null);
-  const [success, setSuccess] = useState<any | null>(null);
+  const [success, setSuccess] = useState<Result[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { updateEvaluation } = useUpdateEvaluation();
 
   const createResult = async () => {
     try {
@@ -47,32 +53,59 @@ export const useCreateResult = (logUrl: string, modelUrl: string) => {
 
       Promise.all([logPromise, modelPromise])
         .then(async ([logFile, modelFile]) => {
-          console.log(logFile);
-          console.log(modelFile);
-
           setLog(logFile);
           setModel(modelFile);
 
           const formData = new FormData();
           formData.append("file", logFile);
           formData.append("pnml_file", modelFile);
-
-          console.log(Array.from(formData.entries()));
+          formData.append("sep", ";");
+          formData.append("case_id", "case_id");
+          formData.append("activity_key", "activity");
+          formData.append("timestamp_key", "timestamp");
 
           await fetch(
-            "https://fekdi-bi.onrender.com/diagnostics-alignments-xes",
+            "https://fekdi-bi.onrender.com/diagnostics-alignments-csv",
             {
               method: "POST",
               body: formData,
             }
           ).then(async (response) => {
-            console.log(response);
             if (!response.ok) {
               throw new Error("Failed to create result");
             }
 
-            const result = await response.json();
-            setSuccess(result);
+            let results: Result[] = [];
+            const json = await response.json();
+
+            results = json.result.map((res: any) => {
+              let alignments: Alignment[] = [];
+
+              res.alignment.forEach((align: any) => {
+                alignments.push({ termA: align[0], termB: align[1] });
+              });
+
+              let result: Result = {
+                alignment: alignments,
+                cost: res.cost,
+                visitedStates: res.visited_states,
+                queuedStates: res.queued_states,
+                traversedArcs: res.traversed_arcs,
+                lpSolved: res.lp_solved,
+                fitness: res.fitness,
+                bwc: res.bwc,
+              };
+
+              return result;
+            });
+
+            await updateEvaluation({
+              sopID: sopID,
+              evaluationID: evaluationID,
+              result: results,
+            });
+
+            setSuccess(results);
           });
         })
         .catch((error: Error) => {

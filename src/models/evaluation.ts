@@ -4,7 +4,7 @@ export type Evaluation = {
   id?: string;
   logID?: string;
   modelID?: string;
-  result?: Result;
+  result?: Result[];
   createdAt: Date;
   updatedAt: Date;
 };

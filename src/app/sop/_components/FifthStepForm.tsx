@@ -129,10 +129,14 @@ const dummyResults: Result[] = [
 export default function FifthStepForm({
   evaluationID,
   targetRef,
+  results,
 }: {
   evaluationID: string;
   targetRef: MutableRefObject<HTMLDivElement>;
+  results: Result[];
 }) {
+  console.log(results);
+
   return (
     <div
       className="w-full h-full overflow-x-scroll overflow-y-scroll flex flex-col gap-8"
@@ -142,7 +146,7 @@ export default function FifthStepForm({
         <h2 className="text-xl font-semibold">Evaluation Results</h2>
         <h3 className="text-md">Version: {evaluationID.substring(0, 4)}</h3>
       </div>
-      {dummyResults.map((res, index) => {
+      {results.map((res, index) => {
         return (
           <Pane key={index} className="flex flex-col gap-4">
             <Table className="w-full flex justify-start">

@@ -14,7 +14,7 @@ export const useUpdateEvaluation = () => {
     evaluationID: string;
     logID?: string;
     modelID?: string;
-    result?: Result;
+    result?: Result[];
   }
 
   const updateEvaluation = async ({
