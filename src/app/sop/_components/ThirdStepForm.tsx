@@ -59,7 +59,7 @@ export default function ThirdStepForm({
             <div className="flex flex-col items-center space-y-4">
               <CloudDownloadIcon size={36} color={"#8F95B2"} />
               {cloudPetrinet ? (
-                <p className="text-n600">{`Uploaded file: ${getFileName(
+                <p className="text-n600 text-center text-sm px-6">{`Uploaded file: ${getFileName(
                   cloudPetrinet
                 )}`}</p>
               ) : null}

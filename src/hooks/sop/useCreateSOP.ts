@@ -22,8 +22,6 @@ export const useCreateSOP = () => {
         updatedAt: new Date(),
       };
 
-      console.log(sop);
-
       await addDoc(collection(db, "sop"), sop);
       setIsSuccess(true);
     } catch (error: any) {

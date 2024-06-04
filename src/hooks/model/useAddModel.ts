@@ -26,7 +26,6 @@ export const useAddModel = () => {
       //Add log to SOP
       const model: Model = {
         link: storageUrl,
-        isFit: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

@@ -12,6 +12,7 @@ export default function FirstStepForm({
   uploadedLog: File | null;
   cloudLog: string | null;
 }) {
+  console.log(uploadedLog, cloudLog);
   return (
     <div className="flex h-full">
       <div className="w-1/2 px-6 overflow-y-scroll flex flex-col space-y-2">
@@ -26,7 +27,7 @@ export default function FirstStepForm({
       </div>
       <div className="w-[1px] h-full bg-n300" />
       <div className="w-1/2 px-6">
-        {cloudLog === null ? (
+        {!cloudLog ? (
           <Dropzone
             maxFiles={1}
             onDrop={(acceptedFiles) => setLog(acceptedFiles[0])}

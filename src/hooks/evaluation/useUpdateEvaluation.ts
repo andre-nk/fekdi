@@ -1,5 +1,6 @@
 import { db } from "@/firebase/config";
 import { Evaluation } from "@/models/evaluation";
+import { Result } from "@/models/result";
 import { addDoc, collection, doc, getDoc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 
@@ -13,6 +14,7 @@ export const useUpdateEvaluation = () => {
     evaluationID: string;
     logID?: string;
     modelID?: string;
+    result?: Result;
   }
 
   const updateEvaluation = async ({
@@ -20,6 +22,7 @@ export const useUpdateEvaluation = () => {
     evaluationID,
     logID,
     modelID,
+    result,
   }: UpdateEvaluationInput) => {
     try {
       setSuccess(false);
@@ -37,6 +40,13 @@ export const useUpdateEvaluation = () => {
         await updateDoc(doc(db, `sop/${sopID}/evaluations/${evaluationID}`), {
           updatedAt: new Date(),
           modelID: modelID,
+        });
+      }
+
+      if (result) {
+        await updateDoc(doc(db, `sop/${sopID}/evaluations/${evaluationID}`), {
+          updatedAt: new Date(),
+          result: result,
         });
       }
 

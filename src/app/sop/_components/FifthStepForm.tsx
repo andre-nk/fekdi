@@ -138,8 +138,8 @@ export default function FifthStepForm({
       className="w-full h-full overflow-x-scroll overflow-y-scroll flex flex-col gap-8"
       ref={targetRef}
     >
-      <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold px-6">Evaluation Results</h2>
+      <div className="flex flex-col gap-2 px-6">
+        <h2 className="text-xl font-semibold">Evaluation Results</h2>
         <h3 className="text-md">Version: {evaluationID.substring(0, 4)}</h3>
       </div>
       {dummyResults.map((res, index) => {

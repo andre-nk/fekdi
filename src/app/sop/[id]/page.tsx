@@ -10,12 +10,7 @@ import {
   Spinner,
   toaster,
 } from "evergreen-ui";
-import {
-  PanelGroup,
-  Panel,
-  PanelResizeHandle,
-  getPanelGroupElement,
-} from "react-resizable-panels";
+import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 import Header from "@/app/_components/Header";
 import { useGetSOPByID } from "@/hooks/sop/useGetSOPByID";
 import SOPNodes from "../_components/SOPNodes";
@@ -30,10 +25,10 @@ import { uuid } from "uuidv4";
 import { useAddLog } from "@/hooks/log/useAddLog";
 import { useCreateEvaluation } from "@/hooks/evaluation/useCreateEvaluation";
 import { useAddModel } from "@/hooks/model/useAddModel";
-import VersionDropdown from "@/app/_components/VersionDropdown";
 import { usePDF } from "react-to-pdf";
 import { useGetLog } from "@/hooks/log/useGetLog";
 import { useGetModel } from "@/hooks/model/useGetModel";
+import { useCreateResult } from "@/hooks/result/useCreateResult";
 
 export default function SOPDetailPage({ params }: { params: { id: string } }) {
   const [step, setStep] = useState(1);
@@ -102,10 +97,8 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
         setStep(1);
       } else if (evaluation) {
         if (evaluation.result !== undefined) {
-          //console.log("Test 5");
           setStep(5);
         } else if (evaluation.modelID !== undefined) {
-          //console.log("Test 2");
           setStep(4);
         } else if (evaluation.modelID === undefined) {
           setStep(3);
@@ -115,23 +108,15 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
           setStep(1);
         }
       } else if (sop?.evaluations && sop.evaluations.length > 0) {
-        // console.log(sop.evaluations[0].logID);
-        // console.log(sop.evaluations[0].modelID);
-        // console.log(sop.evaluations[0].evaluation);
         if (sop.evaluations[0].result !== undefined) {
-          //console.log("Test 5");
           setStep(5);
         } else if (sop.evaluations[0].modelID !== undefined) {
-          //console.log("Test 2");
           setStep(4);
         } else if (sop.evaluations[0].logID !== undefined) {
-          //console.log("Test 1");
           setStep(4);
         }
 
         setEvaluation(sop.evaluations[0]);
-        // console.log("Step " + step);
-        // console.log("Evaluation: " + evaluation);
       }
       setInitiated(true);
     }
@@ -140,7 +125,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
   //#1: Handle Log Error
   useEffect(() => {
     if (logError || error) {
-      console.error(logError || error);
       toaster.danger(`Error ${logError || error}`, {});
     }
   }, [logError, error]);
@@ -152,8 +136,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
         ...evaluation!,
         logID: id,
       });
-
-      console.log("Set Evaluation Log", id);
     };
 
     if (logSuccess && !evaluation?.logID) {
@@ -169,8 +151,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
         ...evaluation!,
         modelID: id,
       });
-
-      console.log("Set Model Log", id);
     };
 
     if (modelSuccess && !evaluation?.modelID) {
@@ -190,7 +170,14 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
     model: fetchedModel,
     loading: getModelLoading,
     error: getModelError,
-  } = useGetModel(params.id as string, evaluation?.logID);
+  } = useGetModel(params.id as string, evaluation?.modelID);
+
+  const {
+    success,
+    loading: resultLoading,
+    error: resultError,
+    createResult,
+  } = useCreateResult(fetchedLog?.link!, fetchedModel?.link!);
 
   //#4: Export to PDF
   const { toPDF, targetRef } = usePDF({ filename: "page.pdf" });
@@ -281,7 +268,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                   }
                   onClick={async () => {
                     if (step == 1) {
-                      console.log(evaluation.logID === undefined && log);
                       if (
                         evaluation.logID === undefined &&
                         log &&
@@ -300,6 +286,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                         setStep(step + 1);
                       }
                     } else if (step == 4) {
+                      await createResult();
                       setStep(step + 1);
                     } else if (step == 5) {
                       if (targetRef.current !== null) {
@@ -309,7 +296,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                   }}
                 >
                   <p className="text-white font-medium">
-                    {step == 5 ? "Export to PDF" : "Next"}
+                    {step == 5 ? "Export to PDF" : step == 4 ? "Check" : "Next"}
                   </p>
                 </Button>
               </div>

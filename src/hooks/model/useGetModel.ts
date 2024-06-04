@@ -15,17 +15,24 @@ export const useGetModel = (sopID: string, modelID?: string) => {
         const modelSnapshot = await getDoc(
           doc(db, `sop/${sopID}/models/${modelID}`)
         );
-        const model = modelSnapshot.data() as Model;
 
-        setModel(model);
-        setLoading(false);
+        if (modelSnapshot.exists()) {
+          const model = modelSnapshot.data() as Model;
+
+          setModel(model);
+          setLoading(false);
+        } else {
+          throw new Error("Model not found");
+        }
       } catch (error: any) {
         setError(error.message);
         setLoading(false);
       }
     };
 
-    if (sopID && modelID) getModel(sopID, modelID);
+    if (sopID && modelID) {
+      getModel(sopID, modelID);
+    }
   }, [sopID, modelID]);
 
   return { model, loading, error };
