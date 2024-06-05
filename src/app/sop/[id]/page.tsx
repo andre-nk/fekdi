@@ -118,25 +118,24 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
       if (sop?.evaluations && sop.evaluations.length === 0) {
         setStep(1);
       } else if (evaluation) {
-        if (evaluation.result !== undefined) {
-          setStep(4);
-        } else if (evaluation.modelID !== undefined) {
-          setStep(3);
-        } else if (
-          evaluation.modelID === undefined ||
-          evaluation.logID !== undefined
-        ) {
-          setStep(2);
-        } else if (evaluation.logID === undefined) {
+        if (evaluation.logID === undefined) {
           setStep(1);
+        } else if (evaluation.modelID === undefined) {
+          setStep(2);
+        } else if (evaluation.result === undefined) {
+          setStep(3);
+        } else {
+          setStep(4);
         }
       } else if (sop?.evaluations && sop.evaluations.length > 0) {
-        if (sop.evaluations[0].result !== undefined) {
-          setStep(4);
-        } else if (sop.evaluations[0].modelID !== undefined) {
-          setStep(3);
-        } else if (sop.evaluations[0].logID !== undefined) {
+        if (sop.evaluations[0].logID === undefined) {
+          setStep(1);
+        } else if (sop.evaluations[0].modelID === undefined) {
           setStep(2);
+        } else if (sop.evaluations[0].result === undefined) {
+          setStep(3);
+        } else {
+          setStep(4);
         }
 
         setEvaluation(sop.evaluations[0]);
@@ -157,6 +156,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
     if (logSuccess && !evaluation?.logID) {
       setStep(step + 1);
       setEvaluationLog(logSuccess!);
+      toaster.success("Log has been added successfully!");
     }
   }, [logSuccess, evaluation?.id, step, evaluation]);
 
@@ -172,6 +172,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
     if (modelSuccess && !evaluation?.modelID) {
       setStep(step + 1);
       setEvaluationModel(modelSuccess!);
+      toaster.success("Model has been added successfully!");
     }
   }, [modelSuccess, evaluation?.id, step, evaluation]);
 
@@ -179,7 +180,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (resultSuccess) {
       toaster.success("Result has been created successfully!");
-      setStep(step + 1);
     }
   }, [resultSuccess, step]);
 
@@ -198,12 +198,15 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
     }
 
     if (resultError) {
-      toaster.danger("An error occurred while creating the result!");
+      toaster.danger(resultError);
     }
   }, [evalError, logError, modelError, resultError]);
 
   //? #6: Export to PDF
   const setResults = useResultContext((state) => state.setResults);
+
+  console.log(step);
+  console.log(resultLoading, resultSuccess, evaluation?.result);
 
   return loading && sop === null ? (
     <div className="w-full min-h-screen flex flex-col justify-center items-center">
@@ -286,7 +289,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                     (step == 3 && resultLoading)
                   }
                   iconAfter={
-                    step == 5 ? (
+                    step == 4 ? (
                       <SavedIcon size={12} color="white" />
                     ) : (
                       <ChevronRightIcon size={12} color="white" />
@@ -310,7 +313,9 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                         setStep(step + 1);
                       }
                     } else if (step == 3) {
-                      await createResult();
+                      await createResult().then(() => {
+                        if (!resultLoading && !resultError) setStep(step + 1);
+                      });
                     } else if (step == 4) {
                       setResults(evaluation.result!);
                       router.push(`/sop/${sop?.id}/export?id=${evaluation.id}`);
@@ -322,7 +327,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                       ? "Export to PDF"
                       : step == 3 && !resultLoading
                       ? "Check"
-                      : step == 3 && resultLoading
+                      : resultLoading || logLoading || modelLoading
                       ? "Loading..."
                       : "Next"}
                   </p>

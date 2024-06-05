@@ -1,6 +1,7 @@
 import { Alignment, Result } from "@/models/result";
 import { useState } from "react";
 import { useUpdateEvaluation } from "../evaluation/useUpdateEvaluation";
+import { getFileExtension } from "@/utils/getFileExtension";
 
 export const useCreateResult = (
   sopID: string,
@@ -89,7 +90,7 @@ export const useCreateResult = (
 
       Promise.all([logPromise, modelPromise])
         .then(async ([logFile, modelFile]) => {
-          if (logFile.type === "text/csv") {
+          if (getFileExtension(logFile.name) === "csv") {
             const formData = new FormData();
             formData.append("file", logFile);
             formData.append("pnml_file", modelFile);
@@ -98,6 +99,7 @@ export const useCreateResult = (
             formData.append("activity_key", "activity");
             formData.append("timestamp_key", "timestamp");
 
+            console.log("fetch");
             await fetch(
               "https://fekdi-bi.onrender.com/diagnostics-alignments-csv",
               {
@@ -105,9 +107,10 @@ export const useCreateResult = (
                 body: formData,
               }
             ).then(async (response) => {
+              console.log(response);
               await handleResponse(response);
             });
-          } else if (logFile.type === "text/xes") {
+          } else if (getFileExtension(logFile.name) === "xes") {
             const formData = new FormData();
             formData.append("file", logFile);
             formData.append("pnml_file", modelFile);
@@ -121,6 +124,8 @@ export const useCreateResult = (
             ).then(async (response) => {
               await handleResponse(response);
             });
+          } else {
+            throw new Error("Invalid log file format");
           }
         })
         .catch((error: Error) => {
