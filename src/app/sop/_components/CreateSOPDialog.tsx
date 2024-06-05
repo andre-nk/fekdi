@@ -1,10 +1,5 @@
 import { Dialog, TextInputField } from "evergreen-ui";
-import React, {
-  Dispatch,
-  KeyboardEventHandler,
-  SetStateAction,
-  useState,
-} from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 
 export default function CreateSOPDialog({
   isShown,

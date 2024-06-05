@@ -2,7 +2,7 @@
 
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "./_components/Sidebar";
+import NoSsrLayout from "./noSsrLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,10 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-n75`}>
-        <main className="w-full flex min-h-screen bg-n75">
-          <Sidebar />
-          {children}
-        </main>
+        <NoSsrLayout>{children}</NoSsrLayout>
       </body>
     </html>
   );
