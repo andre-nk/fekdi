@@ -13,7 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-n75`}>
         <main className="w-full flex min-h-screen bg-n75">
           <Sidebar />
           {children}

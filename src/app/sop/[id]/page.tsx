@@ -24,12 +24,16 @@ import { uuid } from "uuidv4";
 import { useAddLog } from "@/hooks/log/useAddLog";
 import { useCreateEvaluation } from "@/hooks/evaluation/useCreateEvaluation";
 import { useAddModel } from "@/hooks/model/useAddModel";
-import { usePDF } from "react-to-pdf";
+import { Margin, usePDF } from "react-to-pdf";
 import { useGetLog } from "@/hooks/log/useGetLog";
 import { useGetModel } from "@/hooks/model/useGetModel";
 import { useCreateResult } from "@/hooks/result/useCreateResult";
+import { useRouter } from "next/navigation";
+import { useResultContext } from "@/context/ResultContext";
 
 export default function SOPDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+
   const [step, setStep] = useState(1);
   const [initiated, setInitiated] = useState(false);
   const [log, setLog] = useState<File | null>(null);
@@ -199,7 +203,7 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
   }, [evalError, logError, modelError, resultError]);
 
   //? #6: Export to PDF
-  const { toPDF, targetRef } = usePDF({ filename: "page.pdf" });
+  const setResults = useResultContext((state) => state.setResults);
 
   return loading && sop === null ? (
     <div className="w-full min-h-screen flex flex-col justify-center items-center">
@@ -248,7 +252,6 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
               ) : (
                 <FourthStepForm
                   evaluationID={evaluation.id!}
-                  targetRef={targetRef}
                   results={
                     resultSuccess
                       ? resultSuccess
@@ -309,9 +312,8 @@ export default function SOPDetailPage({ params }: { params: { id: string } }) {
                     } else if (step == 3) {
                       await createResult();
                     } else if (step == 4) {
-                      if (targetRef.current !== null) {
-                        toPDF();
-                      }
+                      setResults(evaluation.result!);
+                      router.push(`/sop/${sop?.id}/export?id=${evaluation.id}`);
                     }
                   }}
                 >

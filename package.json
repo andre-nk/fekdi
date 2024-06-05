@@ -18,7 +18,8 @@
     "react-resizable-panels": "^2.0.19",
     "react-to-pdf": "^1.0.1",
     "reactflow": "^11.11.3",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^20",
