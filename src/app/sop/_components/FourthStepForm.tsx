@@ -1,20 +1,180 @@
-import React from "react";
+import { Result } from "@/models/result";
+import { Pane, Table } from "evergreen-ui";
+import React, { MutableRefObject } from "react";
 
-export default function FourthStepForm() {
+const dummyResults: Result[] = [
+  {
+    alignment: [
+      { termA: ">>", termB: "register request" },
+      { termA: ">>", termB: null },
+      { termA: "examine thoroughly", termB: "examine thoroughly" },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: "decide", termB: "decide" },
+      { termA: ">>", termB: null },
+      { termA: "reject request", termB: "reject request" },
+    ],
+    cost: 10002,
+    visitedStates: 7,
+    queuedStates: 22,
+    traversedArcs: 22,
+    lpSolved: 1,
+    fitness: 0.8888888888888888,
+    bwc: 90002,
+  },
+  {
+    alignment: [
+      { termA: "register request", termB: "register request" },
+      { termA: ">>", termB: null },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: "examine casually", termB: "examine casually" },
+      { termA: ">>", termB: "decide" },
+      { termA: ">>", termB: null },
+      { termA: "pay compensation", termB: "pay compensation" },
+    ],
+    cost: 10002,
+    visitedStates: 7,
+    queuedStates: 23,
+    traversedArcs: 23,
+    lpSolved: 3,
+    fitness: 0.8888888888888888,
+    bwc: 90002,
+  },
+  {
+    alignment: [
+      { termA: "register request", termB: "register request" },
+      { termA: ">>", termB: null },
+      { termA: ">>", termB: "examine casually" },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: "decide", termB: "decide" },
+      { termA: "reinitiate request", termB: ">>" },
+      { termA: ">>", termB: null },
+      { termA: "pay compensation", termB: "pay compensation" },
+    ],
+    cost: 20002,
+    visitedStates: 8,
+    queuedStates: 27,
+    traversedArcs: 27,
+    lpSolved: 6,
+    fitness: 0.8,
+    bwc: 100002,
+  },
+  {
+    alignment: [
+      { termA: "register request", termB: "register request" },
+      { termA: ">>", termB: null },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: "examine thoroughly", termB: "examine thoroughly" },
+      { termA: "decide", termB: "decide" },
+      { termA: ">>", termB: null },
+      { termA: "reject request", termB: "reject request" },
+    ],
+    cost: 2,
+    visitedStates: 7,
+    queuedStates: 24,
+    traversedArcs: 24,
+    lpSolved: 1,
+    fitness: 1.0,
+    bwc: 100002,
+  },
+  {
+    alignment: [
+      { termA: "register request", termB: "register request" },
+      { termA: ">>", termB: null },
+      { termA: "examine casually", termB: "examine casually" },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: "decide", termB: "decide" },
+      { termA: "reinitiate the request for real", termB: ">>" },
+      { termA: ">>", termB: "reinitiate request" },
+      { termA: ">>", termB: null },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: "examine casually", termB: "examine casually" },
+      { termA: "decide", termB: "decide" },
+      { termA: ">>", termB: "reinitiate request" },
+      { termA: ">>", termB: null },
+      { termA: "examine casually", termB: "examine casually" },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: "decide", termB: "decide" },
+      { termA: ">>", termB: null },
+      { termA: "reject request", termB: "reject request" },
+    ],
+    cost: 30004,
+    visitedStates: 18,
+    queuedStates: 59,
+    traversedArcs: 59,
+    lpSolved: 10,
+    fitness: 0.8235294117647058,
+    bwc: 170002,
+  },
+  {
+    alignment: [
+      { termA: "register request", termB: "register request" },
+      { termA: ">>", termB: null },
+      { termA: ">>", termB: "examine casually" },
+      { termA: "check ticket", termB: "check ticket" },
+      { termA: ">>", termB: "decide" },
+      { termA: "decide something", termB: ">>" },
+      { termA: ">>", termB: null },
+      { termA: "pay compensation", termB: "pay compensation" },
+    ],
+    cost: 30002,
+    visitedStates: 8,
+    queuedStates: 25,
+    traversedArcs: 25,
+    lpSolved: 2,
+    fitness: 0.6666666666666667,
+    bwc: 90002,
+  },
+];
+
+export default function FourthStepForm({
+  evaluationID,
+  targetRef,
+  results,
+}: {
+  evaluationID: string;
+  targetRef: MutableRefObject<HTMLDivElement>;
+  results: Result[];
+}) {
+  console.log(results);
+
   return (
-    <div className="flex h-full">
-      <div className="w-1/2 px-6 overflow-y-scroll flex flex-col space-y-2">
-        <h2 className="font-medium text-xl">Step 4: Conformance Check</h2>
-        <p className="text-sm text-n800 font-light leading-relaxed">
-          Lorem Ipsum is simply dummy text of the printing and typesetting
-          industry. Lorem Ipsum has been the industry&apos;s standard dummy text
-          ever since the 1500s, when an unknown printer took a galley of type
-          and scrambled it to make a type specimen book. It has survived not
-          only five centuries, but also the leap into electronic typesetting.
-        </p>
+    <div
+      className="h-full overflow-y-scroll flex flex-col gap-8"
+      ref={targetRef}
+    >
+      <div className="flex flex-col gap-2 px-6">
+        <h2 className="text-xl font-semibold">Evaluation Results</h2>
+        <h3 className="text-md">Version: {evaluationID.substring(0, 4)}</h3>
       </div>
-      <div className="w-[1px] h-full bg-n300" />
-      <div className="w-1/2 px-6"></div>
+      {results.map((res, index) => {
+        return (
+          <div key={index} className="flex flex-col gap-4">
+            <div className="inline-flex w-fit">
+              {res.alignment.map((align, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col text-xs w-[12vw] justify-center items-center border border-gray-300"
+                  >
+                    <p className="flex-1 py-2">{align.termA}</p>
+                    <div className="w-full h-[1px] bg-gray-300"></div>
+                    <p className="flex-1 py-2">{align.termB}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex flex-col gap-2 text-xs w-fit rounded-md items-start p-4 mx-6 bg-blue-50">
+              <p>Cost: {res.cost}</p>
+              <p>Visited States: {res.visitedStates}</p>
+              <p>Queued States: {res.queuedStates}</p>
+              <p>Traversed Arcs: {res.traversedArcs}</p>
+              <p>LP Solved: {res.lpSolved}</p>
+              <p>Fitness: {res.fitness}</p>
+              <p>BWC: {res.bwc}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

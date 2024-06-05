@@ -8,12 +8,48 @@ export const useCreateResult = (
   logUrl: string,
   modelUrl: string
 ) => {
-  const [log, setLog] = useState<File | null>(null);
-  const [model, setModel] = useState<File | null>(null);
   const [success, setSuccess] = useState<Result[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { updateEvaluation } = useUpdateEvaluation();
+
+  const handleResponse = async (response: any) => {
+    if (!response.ok) {
+      throw new Error("Failed to create result");
+    }
+
+    let results: Result[] = [];
+    const json = await response.json();
+
+    results = json.result.map((res: any) => {
+      let alignments: Alignment[] = [];
+
+      res.alignment.forEach((align: any) => {
+        alignments.push({ termA: align[0], termB: align[1] });
+      });
+
+      let result: Result = {
+        alignment: alignments,
+        cost: res.cost,
+        visitedStates: res.visited_states,
+        queuedStates: res.queued_states,
+        traversedArcs: res.traversed_arcs,
+        lpSolved: res.lp_solved,
+        fitness: res.fitness,
+        bwc: res.bwc,
+      };
+
+      return result;
+    });
+
+    await updateEvaluation({
+      sopID: sopID,
+      evaluationID: evaluationID,
+      result: results,
+    });
+
+    setSuccess(results);
+  };
 
   const createResult = async () => {
     try {
@@ -53,60 +89,39 @@ export const useCreateResult = (
 
       Promise.all([logPromise, modelPromise])
         .then(async ([logFile, modelFile]) => {
-          setLog(logFile);
-          setModel(modelFile);
+          if (logFile.type === "text/csv") {
+            const formData = new FormData();
+            formData.append("file", logFile);
+            formData.append("pnml_file", modelFile);
+            formData.append("sep", ";");
+            formData.append("case_id", "case_id");
+            formData.append("activity_key", "activity");
+            formData.append("timestamp_key", "timestamp");
 
-          const formData = new FormData();
-          formData.append("file", logFile);
-          formData.append("pnml_file", modelFile);
-          formData.append("sep", ";");
-          formData.append("case_id", "case_id");
-          formData.append("activity_key", "activity");
-          formData.append("timestamp_key", "timestamp");
-
-          await fetch(
-            "https://fekdi-bi.onrender.com/diagnostics-alignments-csv",
-            {
-              method: "POST",
-              body: formData,
-            }
-          ).then(async (response) => {
-            if (!response.ok) {
-              throw new Error("Failed to create result");
-            }
-
-            let results: Result[] = [];
-            const json = await response.json();
-
-            results = json.result.map((res: any) => {
-              let alignments: Alignment[] = [];
-
-              res.alignment.forEach((align: any) => {
-                alignments.push({ termA: align[0], termB: align[1] });
-              });
-
-              let result: Result = {
-                alignment: alignments,
-                cost: res.cost,
-                visitedStates: res.visited_states,
-                queuedStates: res.queued_states,
-                traversedArcs: res.traversed_arcs,
-                lpSolved: res.lp_solved,
-                fitness: res.fitness,
-                bwc: res.bwc,
-              };
-
-              return result;
+            await fetch(
+              "https://fekdi-bi.onrender.com/diagnostics-alignments-csv",
+              {
+                method: "POST",
+                body: formData,
+              }
+            ).then(async (response) => {
+              await handleResponse(response);
             });
+          } else if (logFile.type === "text/xes") {
+            const formData = new FormData();
+            formData.append("file", logFile);
+            formData.append("pnml_file", modelFile);
 
-            await updateEvaluation({
-              sopID: sopID,
-              evaluationID: evaluationID,
-              result: results,
+            await fetch(
+              "https://fekdi-bi.onrender.com/diagnostics-alignments-xes",
+              {
+                method: "POST",
+                body: formData,
+              }
+            ).then(async (response) => {
+              await handleResponse(response);
             });
-
-            setSuccess(results);
-          });
+          }
         })
         .catch((error: Error) => {
           setError(error.message);
